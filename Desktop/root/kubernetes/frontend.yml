@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: exam
+spec:
+  selector:
+    app: frontend
+  ports:
+  - protocol: TCP
+    port: 8081
+    targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: exam
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: meriem050/frontend_image:1.0.0
+          args:
+          - /bin/sh
+          - -c
+          - touch /tmp/healthy; sleep 30; rm -f /tmp/healthy; sleep 600
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            exec:
+              command:
+              - cat
+              - /tmp/healthy
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+              - cat
+              - /tmp/healthy
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          startupProbe:
+            exec:
+              command:
+              - cat
+              - /etc/hostname
+            periodSeconds: 10
+            failureThreshold: 30
